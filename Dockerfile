@@ -1,4 +1,4 @@
-# Étape de construction
+# Build stage
 FROM node:20-slim AS builder
 
 WORKDIR /app
@@ -7,7 +7,7 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Étape d'exécution
+# Runtime stage
 FROM node:20-slim
 
 RUN apt-get update && \
@@ -28,7 +28,7 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/node_modules ./node_modules
-# Copier package.json pour s'assurer que la configuration "type": "module" est héritée
+# Copy package.json to ensure "type": "module" configuration is inherited
 COPY --from=builder /app/package*.json ./
 
 RUN chmod +x build/index.js && \

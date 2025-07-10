@@ -1,96 +1,113 @@
 # MCP Create Server
 
-Un service de gestion dynamique de serveurs MCP qui crée, exécute et gère des serveurs Model Context Protocol (MCP) de manière dynamique. Ce service fonctionne lui-même comme un serveur MCP et lance/gère d'autres serveurs MCP comme processus enfants, permettant un écosystème MCP flexible.
+A dynamic MCP server management service that creates, runs, and manages Model Context Protocol (MCP) servers dynamically. This service runs as an MCP server itself and spawns/manages other MCP servers as child processes, enabling a flexible MCP ecosystem.
 
 <a href="https://glama.ai/mcp/servers/lnl6xjkkeq">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/lnl6xjkkeq/badge" alt="Create Server MCP server" />
 </a>
 
-## Fonctionnalités clés
+## 🌟 Key Features
 
-- Création et exécution dynamiques de code de serveur MCP
-- Support pour TypeScript uniquement (support JavaScript et Python prévu pour les prochaines versions)
-- Exécution d'outils sur les serveurs MCP enfants
-- Mises à jour et redémarrages du code serveur
-- Suppression des serveurs non nécessaires
+- **Dynamic MCP Server Creation**: Create and run MCP server code on-the-fly
+- **Multi-Language Support**: TypeScript, JavaScript, and Python server templates
+- **Parameter Validation**: Strict JSON Schema validation with proper MCP error codes (-32602)
+- **Server Persistence**: Save/load/delete servers to/from disk
+- **Tool Execution**: Execute tools on child MCP servers with validation
+- **Server Management**: Update, restart, and delete servers as needed
+- **Robust Python Support**: Fixed Python server stability issues
 
-## Installation
+## 🔧 Recent Improvements
 
-**Note : Docker est la méthode recommandée pour exécuter ce service**
+### ✨ New Features
+- **MCP Parameter Validation**: Strict validation with proper error codes (-32602 for invalid parameters)
+- **Server Persistence**: Save servers to disk and reload them later
+- **Enhanced Python Support**: Fixed Python server stability and closure issues
+- **Better Error Handling**: Improved error messages and MCP compliance
 
-### Installation Docker (Recommandée)
+### 🐛 Bug Fixes
+- Fixed Python servers closing immediately after creation
+- Corrected pip installation to use `python3 -m pip`
+- Fixed duplicate process spawning issues
+- Improved EOF handling in Python templates
+- Better signal handling and graceful shutdown
+
+## 📦 Installation
+
+**Note: Docker is the recommended method for running this service**
+
+### Docker Installation (Recommended)
 
 ```bash
-# Construire l'image Docker
+# Build the Docker image
 docker build -t mcp-create .
 
-# Exécuter le conteneur Docker
+# Run the Docker container
 docker run -it --rm mcp-create
 ```
 
-### Installation manuelle (TypeScript uniquement)
+### Manual Installation
 
 ```bash
-# Cloner le dépôt
-git clone https://github.com/tesla0225/mcp-create.git
+# Clone the repository
+git clone https://github.com/PlumyCat/mcp-create.git
 cd mcp-create
 
-# Installer les dépendances
+# Install dependencies
 npm install
 
-# Construire
+# Build
 npm run build
 
-# Exécuter
+# Run
 npm start
 ```
 
-### Test de l'installation locale
+### Testing Local Installation
 
-Après avoir apporté des modifications au code, vous pouvez le tester localement :
+After making changes to the code, you can test locally:
 
 ```bash
-# Reconstruire après les modifications
+# Rebuild after changes
 npm run build
 
-# Tester le serveur directement (il attendra une entrée du protocole MCP)
+# Test the server directly (it will wait for MCP protocol input)
 npm start
 
-# Ou tester avec une commande echo simple
+# Or test with a simple echo command
 echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | npm start
 ```
 
-### Utilisation de la version locale avec Claude Desktop
+### Using Local Version with Claude Desktop
 
-Pour utiliser votre version locale modifiée avec Claude Desktop, mettez à jour votre `claude_desktop_config.json` :
+To use your modified local version with Claude Desktop, update your `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "mcp-create-local": {
       "command": "node",
-      "args": ["./dist/index.js"],
-      "cwd": "/chemin/vers/votre/mcp-create"
+      "args": ["./build/index.js"],
+      "cwd": "/path/to/your/mcp-create"
     }
   }
 }
 ```
 
-**Note :** Remplacez `/chemin/vers/votre/mcp-create` par le chemin réel vers votre dépôt local.
+**Note:** Replace `/path/to/your/mcp-create` with the actual path to your local repository.
 
-### Construction d'une image Docker avec les modifications locales
+### Building Docker Image with Local Changes
 
-Pour créer une image Docker avec vos modifications locales :
+To create a Docker image with your local changes:
 
 ```bash
-# Construire l'image Docker avec vos modifications
+# Build Docker image with your changes
 docker build -t mcp-create-local .
 
-# Tester l'image Docker
+# Test the Docker image
 docker run -it --rm mcp-create-local
 
-# Utiliser avec Claude Desktop
-# Mettre à jour claude_desktop_config.json :
+# Use with Claude Desktop
+# Update claude_desktop_config.json:
 {
   "mcpServers": {
     "mcp-create-local": {
@@ -101,9 +118,9 @@ docker run -it --rm mcp-create-local
 }
 ```
 
-## Intégration avec Claude Desktop
+## 🤖 Claude Desktop Integration
 
-Ajoutez ce qui suit à votre fichier de configuration Claude Desktop (`claude_desktop_config.json`) :
+Add the following to your Claude Desktop configuration file (`claude_desktop_config.json`):
 
 ```json
 {
@@ -116,30 +133,35 @@ Ajoutez ce qui suit à votre fichier de configuration Claude Desktop (`claude_de
 }
 ```
 
-## Outils disponibles
+## 🛠️ Available Tools
 
-| Nom de l'outil | Description | Paramètres d'entrée | Sortie |
+| Tool Name | Description | Input Parameters | Output |
 |-----------|-------------|-----------------|--------|
-| create-server-from-template | Créer un serveur MCP à partir d'un modèle | language: string | { serverId: string, message: string } |
-| execute-tool | Exécuter un outil sur le serveur | serverId: string<br>toolName: string<br>args: object | Résultat de l'exécution de l'outil |
-| get-server-tools | Obtenir la liste des outils du serveur | serverId: string | { tools: ToolDefinition[] } |
-| delete-server | Supprimer un serveur | serverId: string | { success: boolean, message: string } |
-| list-servers | Obtenir la liste des serveurs en cours d'exécution | aucun | { servers: string[] } |
+| create-server-from-template | Create an MCP server from template | language: string<br>code?: string<br>dependencies?: object | { serverId: string, message: string } |
+| execute-tool | Execute a tool on the server | serverId: string<br>toolName: string<br>args: object | Tool execution result |
+| get-server-tools | Get list of server tools | serverId: string | { tools: ToolDefinition[] } |
+| delete-server | Delete a server | serverId: string | { success: boolean, message: string } |
+| list-servers | Get list of running servers | none | { servers: string[] } |
+| save-server | Save a server to disk | serverId: string<br>name: string | Success message |
+| list-saved-servers | List saved servers | none | Array of saved servers |
+| load-saved-server | Load a saved server | savedServerId: string | New server ID |
+| delete-saved-server | Delete a saved server | savedServerId: string | Success message |
 
-## Exemples d'utilisation
+## 📋 Usage Examples
 
-### Création d'un nouveau serveur
+### Creating a New Server
 
 ```json
 {
   "name": "create-server-from-template",
   "arguments": {
-    "language": "typescript"
+    "language": "python",
+    "code": "# Custom Python MCP server code here"
   }
 }
 ```
 
-### Exécution d'un outil
+### Executing a Tool with Validation
 
 ```json
 {
@@ -148,95 +170,101 @@ Ajoutez ce qui suit à votre fichier de configuration Claude Desktop (`claude_de
     "serverId": "ba7c9a4f-6ba8-4cad-8ec8-a41a08c19fac",
     "toolName": "echo",
     "args": {
-      "message": "Bonjour, serveur MCP dynamique !"
+      "message": "Hello, dynamic MCP server!"
     }
   }
 }
 ```
 
-Parfait ! Pour reconstruire l'image Docker avec tes modifications, voici les étapes :
+### Parameter Validation Example
 
-```bash
-docker build -t mcp-create-local .
-```
-
-Voici les étapes pour reconstruire ton image Docker avec tes modifications :
-
-## 🐳 **Reconstruire l'image Docker**
-
-```bash
-# 1. Assure-toi d'être dans le répertoire du projet
-cd /chemin/vers/ton/mcp-create
-
-# 2. Construire l'image avec tes modifications
-docker build -t mcp-create-local .
-
-# 3. Tester la nouvelle image
-docker run -it --rm mcp-create-local
-
-# 4. Optionnel : Voir les images disponibles
-docker images
-```
-
-## 🔄 **Workflow complet après modifications**
-
-1. **Faire tes modifications** dans `index.ts`
-2. **Reconstruire Docker** : `docker build -t mcp-create-local .`
-3. **Tester** : `docker run -it --rm mcp-create-local`
-4. **Mettre à jour Claude Desktop** si nécessaire
-
-## 📝 **Configuration Claude Desktop mise à jour**
+If you try to execute a tool with missing required parameters:
 
 ```json
 {
-  "mcpServers": {
-    "mcp-create-local": {
-      "command": "docker",
-      "args": ["run", "-i", "--rm", "mcp-create-local"]
-    }
+  "name": "execute-tool",
+  "arguments": {
+    "serverId": "ba7c9a4f-6ba8-4cad-8ec8-a41a08c19fac",
+    "toolName": "echo",
+    "args": {}
   }
 }
 ```
 
-## 💡 **Conseils pratiques**
+You'll get a proper MCP error response:
+```json
+{
+  "jsonrpc": "2.0",
+  "error": {
+    "code": -32602,
+    "message": "Invalid parameters: Missing required parameter: 'message'"
+  }
+}
+```
 
-- **Tag différent** : Si tu veux garder l'ancienne version, utilise un tag différent :
+## 🔄 Complete Workflow After Modifications
 
+1. **Make your changes** in the source code
+2. **Rebuild Docker**: `docker build -t mcp-create-local .`
+3. **Test**: `docker run -it --rm mcp-create-local`
+4. **Update Claude Desktop** configuration if needed
+
+## 💡 Practical Tips
+
+- **Different tag**: If you want to keep the old version, use a different tag:
   ```bash
   docker build -t mcp-create-local:v2 .
   ```
 
-- **Nettoyage** : Supprimer les anciennes images non utilisées :
-
+- **Cleanup**: Remove unused old images:
   ```bash
   docker image prune
   ```
 
-- **Vérification** : Lister tes images pour confirmer :
-
+- **Verification**: List your images to confirm:
   ```bash
   docker images | grep mcp-create
   ```
 
-Tu veux que je t'aide avec une étape particulière ou tu as des questions sur le processus ?
+## 🏗️ Technical Specifications
 
-## Spécifications techniques
+- Node.js 18 or higher
+- TypeScript (required)
+- Dependencies:
+  - @modelcontextprotocol/sdk: MCP client/server implementation
+  - child_process (Node.js built-in): Child process management
+  - fs/promises (Node.js built-in): File operations
+  - uuid: Unique server ID generation
+  - zod: JSON schema validation
 
-- Node.js 18 ou supérieur
-- TypeScript (requis)
-- Dépendances :
-  - @modelcontextprotocol/sdk: Implémentation client/serveur MCP
-  - child_process (intégré Node.js): Gestion des processus enfants
-  - fs/promises (intégré Node.js): Opérations sur les fichiers
-  - uuid: Génération d'ID de serveur unique
+## 🔒 Security Considerations
 
-## Considérations de sécurité
+- **Code Execution Restrictions**: Consider sandboxing as the service executes arbitrary code
+- **Resource Limitations**: Set limits on memory, CPU usage, file count, etc.
+- **Process Monitoring**: Monitor and forcefully terminate zombie or runaway processes
+- **Path Validation**: Properly validate file paths to prevent directory traversal attacks
+- **Parameter Validation**: All tool parameters are validated against JSON schemas before execution
 
-- **Restrictions d'exécution de code :** Considérez la mise en sandbox car le service exécute du code arbitraire
-- **Limitations de ressources :** Définissez des limites sur la mémoire, l'utilisation CPU, le nombre de fichiers, etc.
-- **Surveillance des processus :** Surveillez et terminez de force les processus zombies ou en fuite
-- **Validation des chemins :** Validez correctement les chemins de fichiers pour prévenir les attaques de traversée de répertoires
+## 🧪 Testing
 
-## Licence
+The project includes comprehensive validation for MCP parameters:
+
+- ✅ **Valid parameters**: Normal execution
+- ✅ **Missing required parameters**: Returns MCP error -32602 with explicit message
+- ✅ **Wrong parameter types**: Returns MCP error -32602 with type details
+- ✅ **Unknown tools**: Returns MCP error -32601
+- ✅ **Optional parameters**: Handled correctly
+
+## 📄 License
 
 MIT
+
+## 🤝 Contributing
+
+Feel free to submit issues and pull requests. This project has been enhanced with Claude Code assistance to provide robust MCP server management capabilities.
+
+---
+
+🧪 **Generated with [Claude Code](https://claude.ai/code)**
+
+Co-Authored-By: Claude <noreply@anthropic.com>

@@ -17,7 +17,7 @@ import { v4 as uuidv4 } from "uuid";
 import * as os from "os";
 import { z } from "zod";
 
-// Définitions de types pour les arguments des outils
+// Type definitions for tool arguments
 interface CreateServerArgs {
   code: string;
   language: "typescript" | "javascript" | "python";
@@ -56,11 +56,11 @@ interface ConnectedServer {
   filePath: string;
 }
 
-// Obtenir le chemin du fichier actuel et le répertoire dans les modules ES
+// Get current file path and directory in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Utilitaire pour convertir JSON Schema en Zod Schema et valider
+// Utility to convert JSON Schema to Zod Schema and validate
 function createZodSchemaFromJsonSchema(jsonSchema: any): z.ZodType<any> {
   if (!jsonSchema || typeof jsonSchema !== 'object') {
     return z.any();
@@ -80,23 +80,23 @@ function createZodSchemaFromJsonSchema(jsonSchema: any): z.ZodType<any> {
       if (jsonSchema.properties) {
         const shape: Record<string, z.ZodType<any>> = {};
         
-        // Créer les propriétés Zod
+        // Create Zod properties
         for (const [key, propSchema] of Object.entries(jsonSchema.properties)) {
           shape[key] = createZodSchemaFromJsonSchema(propSchema as any);
         }
         
         let objectSchema = z.object(shape);
         
-        // Gérer les champs requis
+        // Handle required fields
         if (jsonSchema.required && Array.isArray(jsonSchema.required)) {
-          // Zod object est strict par défaut, mais on peut le rendre optionnel
+          // Zod object is strict by default, but we can make it optional
           const optionalShape: Record<string, z.ZodType<any>> = {};
           
           for (const [key, zodType] of Object.entries(shape)) {
             if (jsonSchema.required.includes(key)) {
-              optionalShape[key] = zodType; // Requis
+              optionalShape[key] = zodType; // Required
             } else {
-              optionalShape[key] = zodType.optional(); // Optionnel
+              optionalShape[key] = zodType.optional(); // Optional
             }
           }
           
@@ -111,7 +111,7 @@ function createZodSchemaFromJsonSchema(jsonSchema: any): z.ZodType<any> {
   }
 }
 
-// Fonction pour valider les paramètres MCP contre un inputSchema
+// Function to validate MCP parameters against an inputSchema
 function validateMcpParameters(args: any, inputSchema: any): { isValid: boolean; error?: string } {
   try {
     const zodSchema = createZodSchemaFromJsonSchema(inputSchema);
@@ -131,17 +131,17 @@ function validateMcpParameters(args: any, inputSchema: any): { isValid: boolean;
   }
 }
 
-// Fonction pour obtenir le chemin absolu d'une commande
+// Function to get the absolute path of a command
 async function getCommandPath(command: string): Promise<string | string[]> {
   try {
-    // Gérer les cas spéciaux pour les commandes Python
+    // Handle special cases for Python commands
     if (command === "pip") {
-      // Utiliser python3 -m pip au lieu de pip direct
+      // Use python3 -m pip instead of direct pip
       console.error(`Using python3 -m pip instead of pip`);
       return ["python3", "-m", "pip"];
     }
 
-    // Dans Docker, les commandes sont généralement dans /usr/bin ou /usr/local/bin
+    // In Docker, commands are usually in /usr/bin or /usr/local/bin
     const possiblePaths = [
       "/usr/local/bin",
       "/usr/bin",
@@ -158,13 +158,13 @@ async function getCommandPath(command: string): Promise<string | string[]> {
         console.error(`Found command ${command} at ${fullPath}`);
         return fullPath;
       } catch {
-        // Si la commande n'existe pas dans ce chemin, essayer le suivant
+        // If command doesn't exist in this path, try the next one
       }
     }
 
-    // Vérifications spéciales pour les commandes communes
+    // Special checks for common commands
     if (command === "python3") {
-      // Vérifier si python3 existe dans le PATH
+      // Check if python3 exists in PATH
       try {
         await fs.access("/usr/bin/python3", fs.constants.X_OK);
         console.error("Found python3 at /usr/bin/python3");
@@ -175,7 +175,7 @@ async function getCommandPath(command: string): Promise<string | string[]> {
       }
     }
 
-    // Si la commande n'est pas trouvée, retourner le nom original
+    // If command is not found, return the original name
     console.error(
       `Command ${command} not found in standard paths, returning as is`
     );
@@ -186,7 +186,7 @@ async function getCommandPath(command: string): Promise<string | string[]> {
   }
 }
 
-// Classe de gestion des serveurs
+// Server management class
 class ServerManager {
   private servers: Map<string, ConnectedServer> = new Map();
 
@@ -196,14 +196,14 @@ class ServerManager {
   private savedServersFile: string = "/app/data/saved_servers.json";
 
   constructor() {
-    // S'assurer que le répertoire des serveurs existe
+    // Ensure server directories exist
     this.initDirectories();
   }
 
   private async initDirectories() {
     try {
       await fs.mkdir(this.serversDir, { recursive: true });
-      // Définir explicitement les permissions (pour fonctionner dans Docker)
+      // Explicitly set permissions (to work in Docker)
       await fs.chmod(this.serversDir, 0o777);
       console.error(`Created servers directory: ${this.serversDir}`);
     } catch (error) {
@@ -211,7 +211,7 @@ class ServerManager {
     }
   }
 
-  // Créer un nouveau serveur à partir du code
+  // Create a new server from code
   async createServer(
     code: string,
     language: string,
@@ -221,15 +221,15 @@ class ServerManager {
     const serverDir = path.join(this.serversDir, serverId);
 
     try {
-      // Créer le répertoire du serveur
+      // Create server directory
       await fs.mkdir(serverDir, { recursive: true });
-      await fs.chmod(serverDir, 0o777); // Ajouter les permissions
+      await fs.chmod(serverDir, 0o777); // Add permissions
 
-      // Installer les dépendances s'il y en a (ne pas créer de lien symbolique)
+      // Install dependencies if any (don't create symbolic link)
       if (dependencies && Object.keys(dependencies).length > 0) {
         await this.installDependencies(serverDir, dependencies, language);
       } else {
-        // Créer un lien symbolique seulement s'il n'y a pas de dépendances
+        // Create symbolic link only if no dependencies
         try {
           await fs.symlink(
             "/app/node_modules",
@@ -238,16 +238,16 @@ class ServerManager {
           console.error(`Created symlink to node_modules in ${serverDir}`);
         } catch (error) {
           console.error(`Error creating symlink: ${error}`);
-          // Continuer même en cas d'erreur
+          // Continue even on error
         }
       }
 
-      // Écrire le code du serveur dans un fichier
+      // Write server code to file
       let filePath: string;
       let command: string;
       let args: string[] = [];
 
-      // Configuration des variables d'environnement communes
+      // Configure common environment variables
       const appNodeModules = path.resolve("/app/node_modules");
       const commonEnv = {
         ...process.env,
@@ -266,12 +266,12 @@ class ServerManager {
 
           await fs.writeFile(filePath, code);
 
-          // Obtenir et afficher le chemin absolu
+          // Get and display absolute path
           const npxCommand = await getCommandPath("npx");
           command = Array.isArray(npxCommand) ? npxCommand[0] : npxCommand;
           console.error(`Using command path for npx: ${command}`);
 
-          // Méthode modifiée pour compiler TypeScript
+          // Modified method to compile TypeScript
           await new Promise<void>((resolve, reject) => {
             const tscCommand = "npx";
             const tscArgs = [
@@ -326,7 +326,7 @@ class ServerManager {
             });
           });
 
-          // Exécuter le JavaScript compilé
+          // Execute compiled JavaScript
           const nodeCommand = await getCommandPath("node");
           command = Array.isArray(nodeCommand) ? nodeCommand[0] : nodeCommand;
           args = [jsFilePath];
@@ -1062,12 +1062,12 @@ class ServerManager {
 
 const createServerFromTemplateTool: Tool = {
   name: "create-server-from-template",
-  description: `Créer un nouveau serveur MCP à partir d'un modèle.
+  description: `Create a new MCP server from a template.
   
-  Veuillez implémenter un serveur adapté aux besoins de l'utilisateur en vous basant sur le code de modèle suivant.
-  Sélectionnez le modèle approprié selon le langage et ajoutez/modifiez les fonctionnalités selon les besoins.
+  Please implement a server suitable for the user's needs based on the following template code.
+  Select the appropriate template according to the language and add/modify functionalities as needed.
   
-  Modèle TypeScript:
+  TypeScript Template:
   \`\`\`typescript
   import { Server } from "@modelcontextprotocol/sdk/server/index.js";
   import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -1085,12 +1085,12 @@ const createServerFromTemplateTool: Tool = {
     }
   });
 
-  // Implémentez vos outils ici
+  // Implement your tools here
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
       tools: [{
         name: "echo",
-        description: "Renvoyer un message",
+        description: "Echo back a message",
         inputSchema: {
           type: "object",
           properties: {
@@ -1104,9 +1104,9 @@ const createServerFromTemplateTool: Tool = {
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     if (request.params.name === "echo") {
-      // Utiliser l'assertion de type pour gérer correctement les types TypeScript
+      // Use type assertion to properly handle TypeScript types
       const message = request.params.arguments.message as string;
-      // ou utiliser any : const message: any = request.params.arguments.message;
+      // or use any: const message: any = request.params.arguments.message;
       
       return {
         content: [
@@ -1120,12 +1120,12 @@ const createServerFromTemplateTool: Tool = {
     throw new Error("Tool not found");
   });
 
-  // Démarrage du serveur
+  // Start the server
   const transport = new StdioServerTransport();
   server.connect(transport);
   \`\`\`
   
-  Modèle Python:
+  Python Template:
   \`\`\`python
   #!/usr/bin/env python3
   import json
