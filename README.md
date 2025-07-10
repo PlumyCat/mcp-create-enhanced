@@ -1,6 +1,10 @@
-# MCP Create Server
+# MCP Create Enhanced
 
-A dynamic MCP server management service that creates, runs, and manages Model Context Protocol (MCP) servers dynamically. This service runs as an MCP server itself and spawns/manages other MCP servers as child processes, enabling a flexible MCP ecosystem.
+An **enhanced version** of the dynamic MCP server management service that creates, runs, and manages Model Context Protocol (MCP) servers dynamically. This service runs as an MCP server itself and spawns/manages other MCP servers as child processes, enabling a robust and flexible MCP ecosystem.
+
+## 🔄 Enhanced Version
+
+This is an **enhanced and improved version** of [tesla0225/mcp-create](https://github.com/tesla0225/mcp-create) with significant improvements and new features.
 
 <a href="https://glama.ai/mcp/servers/lnl6xjkkeq">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/lnl6xjkkeq/badge" alt="Create Server MCP server" />
@@ -31,6 +35,21 @@ A dynamic MCP server management service that creates, runs, and manages Model Co
 - Improved EOF handling in Python templates
 - Better signal handling and graceful shutdown
 
+### 🔄 Differences from Original
+
+This enhanced version provides significant improvements over the [original mcp-create](https://github.com/tesla0225/mcp-create):
+
+| Feature | Original | Enhanced |
+|---------|----------|----------|
+| **Parameter Validation** | ❌ Default values for missing params | ✅ Strict JSON Schema validation with MCP errors |
+| **Python Support** | ⚠️ Unstable, immediate closure | ✅ Robust, fixed stability issues |
+| **Server Persistence** | ❌ Not available | ✅ Save/load/delete servers to/from disk |
+| **Error Handling** | ⚠️ Basic error messages | ✅ Proper MCP error codes (-32602, -32601) |
+| **Process Management** | ⚠️ Duplicate process spawning | ✅ Clean single process management |
+| **Documentation** | ⚠️ French comments, basic docs | ✅ Full English docs with examples |
+
+**Original Project**: [tesla0225/mcp-create](https://github.com/tesla0225/mcp-create)
+
 ## 📦 Installation
 
 **Note: Docker is the recommended method for running this service**
@@ -49,8 +68,8 @@ docker run -it --rm mcp-create
 
 ```bash
 # Clone the repository
-git clone https://github.com/PlumyCat/mcp-create.git
-cd mcp-create
+git clone https://github.com/PlumyCat/mcp-create-enhanced.git
+cd mcp-create-enhanced
 
 # Install dependencies
 npm install
@@ -87,13 +106,13 @@ To use your modified local version with Claude Desktop, update your `claude_desk
     "mcp-create-local": {
       "command": "node",
       "args": ["./build/index.js"],
-      "cwd": "/path/to/your/mcp-create"
+      "cwd": "/path/to/your/mcp-create-enhanced"
     }
   }
 }
 ```
 
-**Note:** Replace `/path/to/your/mcp-create` with the actual path to your local repository.
+**Note:** Replace `/path/to/your/mcp-create-enhanced` with the actual path to your local repository.
 
 ### Building Docker Image with Local Changes
 
