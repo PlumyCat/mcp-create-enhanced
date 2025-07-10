@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip3:*)",
+      "Bash(npm run build:*)",
+      "Bash(python3:*)",
+      "Bash(npx ts-node:*)"
+    ],
+    "deny": []
+  }
+}
